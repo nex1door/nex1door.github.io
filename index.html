@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXDOOR // backend &amp; ML</title>
+<meta name="description" content="NexDoor — backend / ML. Python, Go, PostgreSQL, Linux, Docker. GitHub, HuggingFace, Telegram.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;0,800;1,400&family=Unbounded:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:      #08060f;
+  --surface: #120e24;
+  --line:    #2a1f4d;
+  --line-glow:#6d28d9;
+  --neon:    #b026ff;
+  --neon-2:  #e14eff;
+  --cy:      #00f0ff;
+  --pink:    #ff2ec4;
+  --ink:     #ece6ff;
+  --muted:   #8b7fb8;
+  --mono: 'JetBrains Mono', 'Cascadia Code', ui-monospace, monospace;
+  --disp: 'Unbounded', var(--mono);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:var(--mono);font-size:16px;line-height:1.6;overflow-x:hidden;
+}
+
+/* ---------- фон ---------- */
+.grid-bg{
+  position:fixed;inset:0;z-index:-2;
+  background:
+    radial-gradient(ellipse 60% 40% at 70% -10%, rgba(176,38,255,.25), transparent 60%),
+    radial-gradient(ellipse 45% 35% at 5% 105%, rgba(255,46,196,.12), transparent 60%),
+    radial-gradient(ellipse 40% 30% at 95% 90%, rgba(0,240,255,.10), transparent 55%),
+    var(--bg);
+}
+.grid-bg::before{
+  content:"";position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(109,40,217,.17) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(109,40,217,.17) 1px, transparent 1px);
+  background-size:52px 52px;
+  mask-image:radial-gradient(ellipse 90% 70% at 50% 20%, #000 30%, transparent 75%);
+  -webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 20%, #000 30%, transparent 75%);
+  animation:gridDrift 14s linear infinite;
+}
+@keyframes gridDrift{to{background-position:52px 52px}}
+/* плавающие неоновые капли */
+.blob{position:fixed;z-index:-1;border-radius:50%;filter:blur(90px);opacity:.5;pointer-events:none}
+.blob.b1{width:340px;height:340px;background:#7b2cbf;top:-80px;left:-100px;animation:float1 11s ease-in-out infinite}
+.blob.b2{width:260px;height:260px;background:#00c8d4;bottom:-60px;right:-70px;opacity:.35;animation:float2 13s ease-in-out infinite}
+.blob.b3{width:200px;height:200px;background:#ff2ec4;top:55%;left:70%;opacity:.28;animation:float1 17s ease-in-out infinite reverse}
+@keyframes float1{50%{transform:translate(60px,40px) scale(1.15)}}
+@keyframes float2{50%{transform:translate(-50px,-30px) scale(1.1)}}
+/* сканлайны */
+.scanlines{
+  position:fixed;inset:0;z-index:50;pointer-events:none;
+  background:repeating-linear-gradient(0deg, rgba(0,0,0,.14) 0 1px, transparent 1px 3px);
+  mix-blend-mode:multiply;opacity:.5;
+}
+.scanlines::after{
+  content:"";position:absolute;left:0;right:0;height:120px;
+  background:linear-gradient(180deg, transparent, rgba(176,38,255,.07), transparent);
+  animation:sweep 8s linear infinite;
+}
+@keyframes sweep{from{top:-140px}to{top:110%}}
+
+.wrap{max-width:1080px;margin:0 auto;padding:0 28px}
+
+/* ---------- шапка ---------- */
+header{
+  position:sticky;top:0;z-index:40;
+  border-bottom:1px solid var(--line);
+  background:rgba(8,6,15,.82);backdrop-filter:blur(8px);
+}
+.nav{display:flex;align-items:center;justify-content:space-between;height:60px}
+.nav .logo{
+  font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:.14em;
+  color:var(--ink);text-decoration:none;text-shadow:0 0 16px rgba(176,38,255,.8);
+}
+.nav .logo::before{content:"▚ ";color:var(--neon)}
+.nav ul{display:flex;gap:26px;list-style:none}
+.nav a{color:var(--muted);text-decoration:none;font-size:13px;letter-spacing:.12em;text-transform:uppercase;transition:color .2s,text-shadow .2s}
+.nav a:hover{color:var(--cy);text-shadow:0 0 10px rgba(0,240,255,.8)}
+.nav .socials{display:flex;gap:10px}
+.nav .socials a{
+  font-size:12px;letter-spacing:.06em;text-transform:none;
+  border:1px solid var(--line-glow);padding:6px 12px;border-radius:99px;
+  color:var(--neon-2);transition:all .2s;
+}
+.nav .socials a:hover{
+  background:var(--neon);color:#fff;box-shadow:0 0 16px rgba(176,38,255,.7);
+}
+
+/* ---------- бегущая строка ---------- */
+.ticker{
+  overflow:hidden;white-space:nowrap;border-bottom:1px solid var(--line);
+  background:linear-gradient(90deg, rgba(176,38,255,.10), rgba(255,46,196,.08), rgba(0,240,255,.08));
+  padding:9px 0;font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--neon-2);
+}
+.ticker .row{display:inline-block;animation:tick 26s linear infinite}
+.ticker span{margin:0 26px}
+.ticker .c{color:var(--cy)} .ticker .p{color:var(--pink)}
+@keyframes tick{to{transform:translateX(-50%)}}
+
+/* ---------- герой ---------- */
+.hero{
+  min-height:calc(92vh - 60px);
+  display:grid;grid-template-columns:1.2fr .8fr;gap:48px;
+  align-items:center;padding:56px 0 70px;
+}
+.kicker{
+  display:inline-flex;align-items:center;gap:10px;
+  font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--cy);margin-bottom:22px;
+}
+.kicker::before{content:"";width:34px;height:1px;background:var(--cy);box-shadow:0 0 8px var(--cy)}
+.kicker::after{content:"";width:7px;height:7px;border-radius:50%;background:var(--cy);box-shadow:0 0 12px var(--cy);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.25;transform:scale(.7)}}
+.glitch{
+  font-family:var(--disp);font-weight:900;
+  font-size:clamp(48px,9vw,104px);line-height:.95;
+  position:relative;display:inline-block;
+  background:linear-gradient(100deg,#fff 0%,var(--neon-2) 30%,var(--cy) 55%,var(--pink) 80%,#fff 100%);
+  background-size:250% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:shine 6s linear infinite;
+  filter:drop-shadow(0 0 26px rgba(176,38,255,.55));
+}
+@keyframes shine{to{background-position:250% 0}}
+.glitch::before,.glitch::after{
+  content:attr(data-t);position:absolute;inset:0;overflow:hidden;
+}
+.glitch::before{color:var(--cy);-webkit-text-fill-color:var(--cy);clip-path:inset(0 0 62% 0);animation:gl1 3.2s steps(1) infinite}
+.glitch::after{color:var(--pink);-webkit-text-fill-color:var(--pink);clip-path:inset(58% 0 0 0);animation:gl2 2.7s steps(1) infinite}
+@keyframes gl1{0%,84%{transform:none;opacity:0}85%{transform:translate(-5px,-2px);opacity:.95}89%{transform:translate(4px,1px)}92%{transform:none;opacity:0}}
+@keyframes gl2{0%,76%{transform:none;opacity:0}77%{transform:translate(5px,2px);opacity:.95}82%{transform:translate(-4px,-1px)}85%{transform:none;opacity:0}}
+.hero .sub{
+  margin-top:26px;max-width:54ch;color:var(--muted);font-size:15.5px;
+  border-left:2px solid var(--neon);padding-left:18px;
+}
+.hero .sub b{color:var(--ink);font-weight:700}
+.hero .sub .c{color:var(--cy)} .hero .sub .p{color:var(--pink)}
+.hero .cta-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:34px}
+
+/* терминал */
+.term{
+  border:1px solid var(--line-glow);border-radius:8px;
+  background:linear-gradient(180deg, rgba(18,14,36,.92), rgba(8,6,15,.96));
+  box-shadow:0 0 26px rgba(176,38,255,.28), 0 0 2px rgba(0,240,255,.45);
+  font-size:13.5px;overflow:hidden;transform:rotate(-.6deg);
+  animation:termFloat 7s ease-in-out infinite;
+}
+@keyframes termFloat{50%{transform:rotate(.4deg) translateY(-8px)}}
+.term-bar{
+  display:flex;align-items:center;gap:8px;padding:10px 14px;
+  border-bottom:1px solid var(--line);background:rgba(29,20,54,.6);
+}
+.term-bar i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.term-bar i:nth-child(1){background:#ff5f57}
+.term-bar i:nth-child(2){background:#febc2e}
+.term-bar i:nth-child(3){background:#28c840;box-shadow:0 0 8px #28c840}
+.term-bar span{margin-left:auto;color:var(--muted);font-size:11px;letter-spacing:.1em}
+.term-body{padding:20px 18px 24px;line-height:1.75}
+.term-body .p{color:var(--pink)}
+.term-body .g{color:#28c840}
+.term-body .c{color:var(--cy)}
+.term-body .d{color:var(--muted)}
+.caret{display:inline-block;width:9px;height:17px;background:var(--cy);vertical-align:-3px;box-shadow:0 0 8px var(--cy);animation:blink 1.05s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ---------- кнопки ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--mono);font-size:13.5px;letter-spacing:.1em;
+  color:var(--ink);text-decoration:none;padding:14px 24px;border-radius:99px;
+  border:1px solid var(--neon);
+  background:linear-gradient(180deg, rgba(176,38,255,.20), rgba(176,38,255,.06));
+  box-shadow:0 0 18px rgba(176,38,255,.35);
+  transition:transform .2s, box-shadow .2s, background .2s, color .2s;
+}
+.btn .ic{font-size:15px;filter:drop-shadow(0 0 6px currentColor)}
+.btn.tg{border-color:rgba(0,240,255,.6);background:linear-gradient(180deg, rgba(0,240,255,.14), rgba(0,240,255,.04));box-shadow:0 0 16px rgba(0,240,255,.3)}
+.btn.hf{border-color:rgba(255,46,196,.6);background:linear-gradient(180deg, rgba(255,46,196,.14), rgba(255,46,196,.04));box-shadow:0 0 16px rgba(255,46,196,.3)}
+.btn:hover{
+  transform:translateY(-3px) scale(1.02);
+  background:var(--neon);color:#fff;
+  box-shadow:0 10px 32px rgba(176,38,255,.6), 0 0 2px var(--cy);
+}
+.btn.tg:hover{background:var(--cy);color:#04141a;box-shadow:0 10px 32px rgba(0,240,255,.55)}
+.btn.hf:hover{background:var(--pink);color:#1a0413;box-shadow:0 10px 32px rgba(255,46,196,.55)}
+
+/* ---------- секции ---------- */
+section{padding:88px 0;border-top:1px solid var(--line)}
+.sec-head{display:flex;align-items:baseline;gap:18px;margin-bottom:44px}
+.sec-head .num{color:var(--neon-2);font-size:13px;letter-spacing:.1em;animation:pulseNum 3s infinite}
+@keyframes pulseNum{50%{color:var(--cy)}}
+.sec-head h2{
+  font-family:var(--disp);font-weight:700;font-size:clamp(24px,4vw,34px);
+  letter-spacing:.02em;text-transform:lowercase;
+  text-shadow:0 0 18px rgba(176,38,255,.5);
+}
+.sec-head .rule{flex:1;height:1px;background:linear-gradient(90deg, var(--line-glow), transparent)}
+
+/* стек */
+.stack{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}
+.chip{
+  border:1px solid var(--line);border-radius:10px;
+  background:linear-gradient(180deg, rgba(18,14,36,.75), rgba(13,10,26,.9));
+  padding:22px 24px;position:relative;overflow:hidden;
+  transition:transform .25s, box-shadow .25s, border-color .25s;
+}
+.chip:hover{
+  transform:translateY(-5px) rotate(-.4deg);
+  border-color:var(--neon);
+  box-shadow:0 10px 34px rgba(176,38,255,.4), 0 0 2px var(--cy);
+}
+.chip::after{
+  content:"";position:absolute;inset:6px;pointer-events:none;border-radius:6px;
+  background:
+    linear-gradient(var(--neon),var(--neon)) top left/14px 2px,
+    linear-gradient(var(--neon),var(--neon)) top left/2px 14px,
+    linear-gradient(var(--cy),var(--cy)) bottom right/14px 2px,
+    linear-gradient(var(--cy),var(--cy)) bottom right/2px 14px;
+  background-repeat:no-repeat;opacity:.75;transition:opacity .25s;
+}
+.chip:hover::after{opacity:1}
+.chip .lang{
+  font-family:var(--disp);font-weight:700;font-size:20px;
+  color:var(--ink);display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.chip .lang .tag{
+  font-family:var(--mono);font-weight:400;font-size:10px;letter-spacing:.18em;
+  color:var(--neon-2);border:1px solid var(--line-glow);padding:2px 8px;border-radius:99px;
+}
+.chip p{margin-top:10px;color:var(--muted);font-size:13px}
+.chip .bar{margin-top:16px;height:6px;background:#1b1436;border-radius:3px;overflow:hidden}
+.chip .bar i{
+  display:block;height:100%;border-radius:3px;
+  background:linear-gradient(90deg, var(--neon), var(--pink), var(--cy));
+  background-size:200% 100%;
+  box-shadow:0 0 10px rgba(176,38,255,.8);
+  transform-origin:left;transform:scaleX(0);
+  animation:load 1.2s cubic-bezier(.2,.8,.2,1) forwards, barshine 3s 1.2s linear infinite;
+}
+@keyframes load{to{transform:scaleX(1)}}
+@keyframes barshine{to{background-position:200% 0}}
+.chip.c-go    {grid-column:span 7}
+.chip.c-py    {grid-column:span 5}
+.chip.c-pg    {grid-column:span 4}
+.chip.c-linux {grid-column:span 5}
+.chip.c-docker{grid-column:span 3}
+
+/* вайб-карточки */
+.deck{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{
+  border:1px solid var(--line);border-radius:12px;padding:26px 24px;
+  background:linear-gradient(165deg, rgba(24,16,48,.8), rgba(13,10,26,.9));
+  transition:transform .25s, box-shadow .25s;
+}
+.card:hover{transform:translateY(-5px);box-shadow:0 12px 36px rgba(176,38,255,.35)}
+.card .big{font-size:26px;line-height:1;margin-bottom:14px;display:block;filter:drop-shadow(0 0 10px rgba(176,38,255,.6))}
+.card h3{font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:.03em;margin-bottom:10px;color:var(--ink)}
+.card h3 .n{color:var(--cy);font-family:var(--mono);font-size:11px;margin-right:8px}
+.card p{color:var(--muted);font-size:13px}
+.card .hl{color:var(--pink)} .card .hc{color:var(--cy)}
+
+/* контакты */
+.cta{
+  border:1px solid transparent;border-radius:14px;
+  background:
+    linear-gradient(var(--surface),var(--surface)) padding-box,
+    linear-gradient(120deg, var(--neon), var(--pink), var(--cy), var(--neon)) border-box;
+  background-size:100% 100%, 300% 100%;
+  padding:56px 48px;
+  animation:borderFlow 6s linear infinite;
+  box-shadow:0 0 34px rgba(176,38,255,.25);
+}
+@keyframes borderFlow{to{background-position:0 0, 300% 0}}
+.cta .msg{font-family:var(--disp);font-weight:700;font-size:clamp(20px,3vw,28px);line-height:1.35;margin-bottom:8px}
+.cta .msg .c{color:var(--cy);text-shadow:0 0 16px rgba(0,240,255,.6)}
+.cta .msg .p{color:var(--pink);text-shadow:0 0 16px rgba(255,46,196,.6)}
+.cta .sub2{color:var(--muted);font-size:13.5px;margin-bottom:30px}
+.cta .btns{display:flex;flex-wrap:wrap;gap:14px}
+
+footer{
+  border-top:1px solid var(--line);padding:34px 0;
+  color:var(--muted);font-size:12px;letter-spacing:.08em;
+}
+footer .row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+footer .hz{color:var(--neon-2)}
+footer a{color:var(--muted);text-decoration:none;transition:color .2s}
+footer a:hover{color:var(--cy)}
+
+/* ---------- адаптив ---------- */
+@media (max-width:880px){
+  .hero{grid-template-columns:1fr;padding-top:48px}
+  .term{transform:none;max-width:560px;animation:none}
+  .chip.c-go,.chip.c-py,.chip.c-pg,.chip.c-linux,.chip.c-docker{grid-column:span 12}
+  .deck{grid-template-columns:1fr}
+  .nav ul{display:none}
+  .cta{padding:36px 26px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+  .glitch{color:var(--neon-2);-webkit-text-fill-color:var(--neon-2);background:none}
+  .chip .bar i{transform:scaleX(1)}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+<div class="scanlines"></div>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="#top">NEXDOOR</a>
+    <ul>
+      <li><a href="#stack">stack</a></li>
+      <li><a href="#vibe">вайб</a></li>
+      <li><a href="#links">линки</a></li>
+    </ul>
+    <div class="socials">
+      <a href="https://github.com/nex1door" target="_blank" rel="noopener">gh</a>
+      <a href="https://huggingface.co/nextdppr" target="_blank" rel="noopener">hf</a>
+      <a href="https://t.me/Nex1Door" target="_blank" rel="noopener">tg</a>
+    </div>
+  </div>
+</header>
+
+<!-- бегущая строка -->
+<div class="ticker" aria-hidden="true">
+  <div class="row">
+    <span class="c">python</span><span>◆</span><span>go</span><span>◆</span><span class="p">postgresql</span><span>◆</span><span>linux</span><span>◆</span><span class="c">docker</span><span>◆</span><span>backend</span><span>◆</span><span class="p">ml</span><span>◆</span><span>open source</span><span>◆</span>
+    <span class="c">python</span><span>◆</span><span>go</span><span>◆</span><span class="p">postgresql</span><span>◆</span><span>linux</span><span>◆</span><span class="c">docker</span><span>◆</span><span>backend</span><span>◆</span><span class="p">ml</span><span>◆</span><span>open source</span><span>◆</span>
+  </div>
+</div>
+
+<main id="top" class="wrap">
+
+  <!-- ГЕРОЙ -->
+  <div class="hero">
+    <div>
+      <span class="kicker">backend / ml &middot; online</span>
+      <h1><span class="glitch" data-t="NEXDOOR">NEXDOOR</span></h1>
+      <p class="sub">
+        Пишу бэкенд на <b>Go</b> и <b>Python</b>, клею <span class="c">ML</span> к продакшену
+        и не боюсь деплоев в пятницу. Данные живут в <span class="p">Postgres</span>,
+        всё плывёт в <span class="c">Docker</span>, дом — на <span class="c">Linux</span>.
+        Код работает. <b>Всегда</b>. <span class="p">// ну, почти</span>
+      </p>
+      <div class="cta-row">
+        <a class="btn tg" href="https://t.me/Nex1Door" target="_blank" rel="noopener"><span class="ic">✈</span> telegram</a>
+        <a class="btn" href="https://github.com/nex1door" target="_blank" rel="noopener"><span class="ic">◇</span> github</a>
+        <a class="btn hf" href="https://huggingface.co/nextdppr" target="_blank" rel="noopener"><span class="ic">★</span> huggingface</a>
+      </div>
+    </div>
+
+    <!-- терминал -->
+    <div class="term" aria-label="терминал">
+      <div class="term-bar"><i></i><i></i><i></i><span>nexdoor@arcology:~</span></div>
+      <div class="term-body">
+        <span class="type-line"><span class="p">&gt;</span> whoami</span>
+        <span class="type-line"><span class="g">nexdoor</span> <span class="d">— всё работает, не трогай</span></span>
+        <span class="type-line"><span class="p">&gt;</span> cat <span class="c">stack.txt</span></span>
+        <span class="type-line"><span class="g">go</span> <span class="d">·</span> <span class="g">python</span> <span class="d">·</span> <span class="g">postgres</span> <span class="d">·</span> <span class="g">linux</span> <span class="d">·</span> <span class="g">docker</span></span>
+        <span class="type-line"><span class="p">&gt;</span> tail vibes.log</span>
+        <span class="type-line"><span class="g">[ok]</span> деплой в пятницу <span class="d">— смело</span></span>
+        <span class="type-line"><span class="g">[ok]</span> докер не жрал озу <span class="d">— чудо</span></span>
+        <span class="type-line"><span class="p">&gt;</span> <span class="caret"></span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- СТЕК -->
+  <section id="stack">
+    <div class="sec-head">
+      <span class="num">01/</span>
+      <h2>арсенал</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="stack">
+      <div class="chip c-go">
+        <div class="lang">Go <span class="tag">core</span></div>
+        <p>Нагрузка? Горутины? Легко. Сервисы, которые не падают, когда на них все смотрят.</p>
+        <div class="bar"><i style="width:92%"></i></div>
+      </div>
+      <div class="chip c-py">
+        <div class="lang">Python <span class="tag">ml / api</span></div>
+        <p>От прототипа до прода за один вечер. Плюс это уже тулкит для ML.</p>
+        <div class="bar"><i style="width:88%"></i></div>
+      </div>
+      <div class="chip c-pg">
+        <div class="lang">PostgreSQL</div>
+        <p>Индексы, транзакции, миграции без слёз. Данные любят порядок.</p>
+        <div class="bar"><i style="width:84%"></i></div>
+      </div>
+      <div class="chip c-linux">
+        <div class="lang">Linux</div>
+        <p>Дом там, где shell. systemd, сети, vim — родная среда.</p>
+        <div class="bar"><i style="width:90%"></i></div>
+      </div>
+      <div class="chip c-docker">
+        <div class="lang">Docker</div>
+        <p>«У меня работало» → «работает везде». Один образ — одна правда.</p>
+        <div class="bar"><i style="width:86%"></i></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ВАЙБ -->
+  <section id="vibe">
+    <div class="sec-head">
+      <span class="num">02/</span>
+      <h2>вайб</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="deck">
+      <div class="card">
+        <span class="big">⌁</span>
+        <h3><span class="n">[01]</span>быстро ≠ на коленке</h3>
+        <p>Скорость ценю, но тесты и <span class="hc">observability</span> — с первого коммита. Быстро — это когда потом не разгребать.</p>
+      </div>
+      <div class="card">
+        <span class="big">⌬</span>
+        <h3><span class="n">[02]</span>ops не враг</h3>
+        <p>Сам деплою, сам чиню в 3 утра, сам пишу <span class="hl">postmortem</span> без поиска виноватых. Full feedback loop.</p>
+      </div>
+      <div class="card">
+        <span class="big">⌖</span>
+        <h3><span class="n">[03]</span>open source</h3>
+        <p>Код на <span class="hc">GitHub</span>, модели и эксперименты — на <span class="hl">HuggingFace</span>. Делился — стал лучше.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ЛИНКИ -->
+  <section id="links">
+    <div class="sec-head">
+      <span class="num">03/</span>
+      <h2>пингуй</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="cta">
+      <div class="msg">Есть идея? <span class="p">Пиши.</span><br>Отвечаю быстрее, чем CI <span class="c">проходит</span>.</div>
+      <div class="sub2">telegram — самый быстрый канал · github — код · huggingface — модели</div>
+      <div class="btns">
+        <a class="btn tg" href="https://t.me/Nex1Door" target="_blank" rel="noopener"><span class="ic">✈</span> t.me/Nex1Door</a>
+        <a class="btn" href="https://github.com/nex1door" target="_blank" rel="noopener"><span class="ic">◇</span> github.com/nex1door</a>
+        <a class="btn hf" href="https://huggingface.co/nextdppr" target="_blank" rel="noopener"><span class="ic">★</span> huggingface.co/nextdppr</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap row">
+    <span><span class="hz">&#9670;</span> NEXDOOR &middot; с любовью из night city</span>
+    <span>
+      <a href="https://github.com/nex1door" target="_blank" rel="noopener">gh</a> ·
+      <a href="https://huggingface.co/nextdppr" target="_blank" rel="noopener">hf</a> ·
+      <a href="https://t.me/Nex1Door" target="_blank" rel="noopener">tg</a>
+    </span>
+  </div>
+</footer>
+</body>
+</html>
