@@ -255,19 +255,18 @@ section{padding:88px 0;border-top:1px solid var(--line)}
 .chip.c-linux {grid-column:span 5}
 .chip.c-docker{grid-column:span 3}
 
-/* вайб-карточки */
-.deck{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.card{
-  border:1px solid var(--line);border-radius:12px;padding:26px 24px;
-  background:linear-gradient(165deg, rgba(24,16,48,.8), rgba(13,10,26,.9));
-  transition:transform .25s, box-shadow .25s;
+/* аватар */
+.hero-top{display:flex;align-items:center;gap:20px;margin-bottom:22px}
+.hero-top .kicker{margin-bottom:0}
+.avatar{
+  width:96px;height:96px;flex:none;border-radius:24px;padding:3px;
+  background:linear-gradient(120deg,var(--neon),var(--pink),var(--cy),var(--neon));
+  background-size:300% 100%;animation:shine 6s linear infinite;
+  box-shadow:0 0 24px rgba(176,38,255,.5);
+  display:inline-flex;transition:transform .25s;
 }
-.card:hover{transform:translateY(-5px);box-shadow:0 12px 36px rgba(176,38,255,.35)}
-.card .big{font-size:26px;line-height:1;margin-bottom:14px;display:block;filter:drop-shadow(0 0 10px rgba(176,38,255,.6))}
-.card h3{font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:.03em;margin-bottom:10px;color:var(--ink)}
-.card h3 .n{color:var(--cy);font-family:var(--mono);font-size:11px;margin-right:8px}
-.card p{color:var(--muted);font-size:13px}
-.card .hl{color:var(--pink)} .card .hc{color:var(--cy)}
+.avatar:hover{transform:rotate(-3deg) scale(1.06)}
+.avatar img{width:100%;height:100%;border-radius:21px;object-fit:cover;display:block;background:#0d0a1a}
 
 /* контакты */
 .cta{
@@ -301,7 +300,6 @@ footer a:hover{color:var(--cy)}
   .hero{grid-template-columns:1fr;padding-top:48px}
   .term{transform:none;max-width:560px;animation:none}
   .chip.c-go,.chip.c-py,.chip.c-pg,.chip.c-linux,.chip.c-docker{grid-column:span 12}
-  .deck{grid-template-columns:1fr}
   .nav ul{display:none}
   .cta{padding:36px 26px}
 }
@@ -323,7 +321,6 @@ footer a:hover{color:var(--cy)}
     <a class="logo" href="#top">NEXDOOR</a>
     <ul>
       <li><a href="#stack">stack</a></li>
-      <li><a href="#vibe">вайб</a></li>
       <li><a href="#links">линки</a></li>
     </ul>
     <div class="socials">
@@ -347,7 +344,10 @@ footer a:hover{color:var(--cy)}
   <!-- ГЕРОЙ -->
   <div class="hero">
     <div>
-      <span class="kicker">backend / ml &middot; online</span>
+      <div class="hero-top">
+        <span class="avatar"><img src="avatar.jpg" alt="аватар — NexDoor"></span>
+        <span class="kicker">backend / ml &middot; online</span>
+      </div>
       <h1><span class="glitch" data-t="NEXDOOR">NEXDOOR</span></h1>
       <p class="sub">
         Пишу бэкенд на <b>Go</b> и <b>Python</b>, клею <span class="c">ML</span> к продакшену
@@ -414,36 +414,10 @@ footer a:hover{color:var(--cy)}
     </div>
   </section>
 
-  <!-- ВАЙБ -->
-  <section id="vibe">
-    <div class="sec-head">
-      <span class="num">02/</span>
-      <h2>вайб</h2>
-      <span class="rule"></span>
-    </div>
-    <div class="deck">
-      <div class="card">
-        <span class="big">⌁</span>
-        <h3><span class="n">[01]</span>быстро ≠ на коленке</h3>
-        <p>Скорость ценю, но тесты и <span class="hc">observability</span> — с первого коммита. Быстро — это когда потом не разгребать.</p>
-      </div>
-      <div class="card">
-        <span class="big">⌬</span>
-        <h3><span class="n">[02]</span>ops не враг</h3>
-        <p>Сам деплою, сам чиню в 3 утра, сам пишу <span class="hl">postmortem</span> без поиска виноватых. Full feedback loop.</p>
-      </div>
-      <div class="card">
-        <span class="big">⌖</span>
-        <h3><span class="n">[03]</span>open source</h3>
-        <p>Код на <span class="hc">GitHub</span>, модели и эксперименты — на <span class="hl">HuggingFace</span>. Делился — стал лучше.</p>
-      </div>
-    </div>
-  </section>
-
   <!-- ЛИНКИ -->
   <section id="links">
     <div class="sec-head">
-      <span class="num">03/</span>
+      <span class="num">02/</span>
       <h2>пингуй</h2>
       <span class="rule"></span>
     </div>
